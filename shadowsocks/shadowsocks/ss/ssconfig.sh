@@ -705,8 +705,8 @@ start_speeder(){
 				[ -n "$ss_basic_udpv1_password" ] && key1="-k $ss_basic_udpv1_password" || key1=""
 				[ "$ss_basic_udpv1_disable_filter" == "1" ] && filter="--disable-filter" || filter=""
 
-				if [ "$ss_basic_udp2raw_boost_enable" == "1" ];then
-					#串联：如果两者都开启了，则把udpspeeder的流udp量转发给udp2raw
+				if [ "$ss_basic_udp2raw_boost_enable" == "1" ] && [ "$SPEED_KCP" != "2" ];then
+					#串联：如果两者都开启了，并且KCP与UDP2raw之间没有串联，则把udpspeeder的流udp量转发给udp2raw
 					speederv1 -c -l 0.0.0.0:1092 -r 127.0.0.1:1093 $key1 $ss_basic_udpv1_password \
 					$duplicate_time $jitter $report $drop $filter $duplicate $ss_basic_udpv1_duplicate_nu >/dev/null 2>&1 &
 					#如果只开启了udpspeeder，则把udpspeeder的流udp量转发给服务器
@@ -727,8 +727,8 @@ start_speeder(){
 				[ -n "$ss_basic_udpv2_password" ] && key2="-k $ss_basic_udpv2_password" || key2=""
 				[ -n "$ss_basic_udpv2_fec" ] && fec="-f $ss_basic_udpv2_fec" || fec=""
 
-				if [ "$ss_basic_udp2raw_boost_enable" == "1" ];then
-					#串联：如果两者都开启了，则把udpspeeder的流udp量转发给udp2raw
+				if [ "$ss_basic_udp2raw_boost_enable" == "1" ] && [ "$SPEED_KCP" != "2" ];then
+					#串联：如果两者都开启了，并且KCP与UDP2raw之间没有串联，则把udpspeeder的流udp量转发给udp2raw
 					speederv2 -c -l 0.0.0.0:1092 -r 127.0.0.1:1093 $key2 \
 					$fec $timeout $mode $report $mtu $jitter $interval $drop $disable_obscure $ss_basic_udpv2_other --fifo /tmp/fifo.file >/dev/null 2>&1 &
 					#如果只开启了udpspeeder，则把udpspeeder的流udp量转发给服务器
@@ -802,9 +802,9 @@ start_ss_redir(){
 				fi
 				$BIN -s 127.0.0.1 -p 1091 -c $CONFIG_FILE $ARG_OBFS -f /var/run/shadowsocks.pid >/dev/null 2>&1
 				# udp go udpspeeder
-				[ "$ss_basic_udp2raw_boost_enable" == "1" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder, udpspeeder的 udp 走 udpraw
+				[ "$ss_basic_udp2raw_boost_enable" == "1" ] && [ "$SPEED_KCP" != "2" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder, udpspeeder的 udp 走 udpraw
 				[ "$ss_basic_udp2raw_boost_enable" == "1" ]  && [ "$ss_basic_udp_boost_enable" != "1" ] && echo_date $BIN的 udp 走udpraw.
-				[ "$ss_basic_udp2raw_boost_enable" != "1" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder.
+				[ "$ss_basic_udp2raw_boost_enable" != "1" ] || [ "$SPEED_KCP" == "2" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder.
 				[ "$ss_basic_udp2raw_boost_enable" != "1" ]  && [ "$ss_basic_udp_boost_enable" != "1" ] && echo_date $BIN的 udp 走$BIN.
 				$BIN -s 127.0.0.1 -p $SPEED_PORT -c $CONFIG_FILE $ARG_OBFS -U -f /var/run/shadowsocks.pid >/dev/null 2>&1
 			else
@@ -840,9 +840,9 @@ start_ss_redir(){
 				echo_date $BIN的 tcp 走$BIN.
 				$BIN -c $CONFIG_FILE $ARG_OBFS -f /var/run/shadowsocks.pid >/dev/null 2>&1
 				# udp go udpspeeder
-				[ "$ss_basic_udp2raw_boost_enable" == "1" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder, udpspeeder的 udp 走 udpraw
+				[ "$ss_basic_udp2raw_boost_enable" == "1" ] && [ "$SPEED_KCP" != "2" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder, udpspeeder的 udp 走 udpraw
 				[ "$ss_basic_udp2raw_boost_enable" == "1" ]  && [ "$ss_basic_udp_boost_enable" != "1" ] && echo_date $BIN的 udp 走udpraw.
-				[ "$ss_basic_udp2raw_boost_enable" != "1" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder.
+				[ "$ss_basic_udp2raw_boost_enable" != "1" ] || [ "$SPEED_KCP" == "2" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder.
 				[ "$ss_basic_udp2raw_boost_enable" != "1" ]  && [ "$ss_basic_udp_boost_enable" != "1" ] && echo_date $BIN的 udp 走$BIN.
 				$BIN -s 127.0.0.1 -p $SPEED_PORT -c $CONFIG_FILE $ARG_OBFS -U -f /var/run/shadowsocks.pid >/dev/null 2>&1
 			else
